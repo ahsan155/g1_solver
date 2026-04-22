@@ -24,21 +24,24 @@ from tesseract_robotics.tesseract_task_composer import TaskComposerPluginFactory
 from tesseract_robotics_viewer import TesseractViewer
 from tesseract_robotics import tesseract_common
 
-#tesseract_common.setLogLevel(tesseract_common.CONSOLE_BRIDGE_LOG_DEBUG)
+tesseract_common.setLogLevel(tesseract_common.CONSOLE_BRIDGE_LOG_DEBUG)
 
 OMPL_DEFAULT_NAMESPACE = "OMPLMotionPlannerTask"
 TRAJOPT_DEFAULT_NAMESPACE = "TrajOptMotionPlannerTask"
 
 task_composer_filename = os.environ["TESSERACT_TASK_COMPOSER_CONFIG_FILE"]
-print('yy', task_composer_filename)
 
 # Initialize the resource locator and environment
 locator = GeneralResourceLocator()
-abb_irb2400_urdf_package_url = "package://tesseract/support/urdf/g1_urdf_new.urdf"
-abb_irb2400_srdf_package_url = "package://tesseract/support/urdf/g1_srdf_new.srdf"
+abb_irb2400_urdf_package_url = "package://tesseract_python/examples/tesseract_resource/structure/g1.urdf"
+abb_irb2400_srdf_package_url = "package://tesseract_python/examples/tesseract_resource/structure/g1.srdf"
 abb_irb2400_urdf_fname = FilesystemPath(locator.locateResource(abb_irb2400_urdf_package_url).getFilePath())
 abb_irb2400_srdf_fname = FilesystemPath(locator.locateResource(abb_irb2400_srdf_package_url).getFilePath())
-print('xx', abb_irb2400_urdf_fname)
+print('urdf path', abb_irb2400_urdf_fname)
+
+pelvis_package_url = "package://tesseract_python/examples/tesseract_resource/structure/g1_description/urdf/meshes/pelvis.STL"
+pelvis_fname = FilesystemPath(locator.locateResource(pelvis_package_url).getFilePath())
+print('pelvis path', pelvis_fname)
 
 t_env = Environment()
 

@@ -6,35 +6,21 @@ from tesseract_robotics.tesseract_kinematics import KinematicsPluginFactory
 env = Environment()
 locator = GeneralResourceLocator()
 
-urdf_path = "/home/ahsan/ws_moveit2/src/auki_robotics_g1_humanoid_ros2/g1_description/urdf/g1_body29_hand14.urdf"
-srdf_path = "/home/ahsan/ws_moveit2/src/ahsan_g1_moveit_config/config/g1.srdf"
+# export TESSERACT_RESOURCE_PATH=/media/ahsan/T7/tesseract/tesseract_ws/tesseract_python/tesseract_python
+#config_package_url = "package://tesseract_python/examples/tesseract_resource/config/g1_plugins.yaml"
+#config_plugins_fname = FilesystemPath(locator.locateResource(config_package_url).getFilePath())
+#print('config file path:', config_plugins_fname)
 
-env.init(FilesystemPath(urdf_path), FilesystemPath(srdf_path), locator)
-links = list(env.getLinkNames())
+# export TESSERACT_RESOURCE_PATH=/media/ahsan/T7/tesseract/tesseract_ws/tesseract_python
+locator = GeneralResourceLocator()
+abb_irb2400_urdf_package_url = "package://tesseract/mycode/resource/g1.urdf"
+abb_irb2400_srdf_package_url = "package://tesseract/mycode/resource/g1.srdf"
+abb_irb2400_urdf_fname = FilesystemPath(locator.locateResource(abb_irb2400_urdf_package_url).getFilePath())
+abb_irb2400_srdf_fname = FilesystemPath(locator.locateResource(abb_irb2400_srdf_package_url).getFilePath())
+print('urdf path', abb_irb2400_urdf_fname)
+print('srdf path', abb_irb2400_srdf_fname)
 
-#print("Initialized:", env.isInitialized())
-#print(env.getLinkNames())
-#print(links)
+t_env = Environment()
 
-manip = ManipulatorInfo()
-manip.manipulator = "left_arm"
-manip.tcp_frame = "left_wrist_yaw_link"
-manip.working_frame = "torso_link"
-
-
-factory = KinematicsPluginFactory()
-factory.addSearchPath("/opt/ros/humble/lib")
-factory.addSearchLibrary("tesseract_kinematics_kdl_factories")
-
-state = env.getState()
-groups = list(env.getGroupNames())
-print(groups)
-
-
-ik = factory.createInvKin(
-    "left_arm",
-    "KDLInvKinChainLMA",
-    env.getSceneGraph(),
-    state
-)
-
+# locator_fn must be kept alive by maintaining a reference
+assert t_env.init(abb_irb2400_urdf_fname, abb_irb2400_srdf_fname, locator)
