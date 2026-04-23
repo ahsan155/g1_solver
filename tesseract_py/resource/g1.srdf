@@ -283,6 +283,12 @@
     <disable_collisions link1="R_hand_base_link" link2="R_thumb_distal" reason="Never"/>
     <disable_collisions link1="R_hand_base_link" link2="R_thumb_intermediate" reason="Never"/>
     <disable_collisions link1="R_hand_base_link" link2="R_thumb_proximal_base" reason="Never"/>
+    
+    <disable_collisions link1="R_hand_base_link" link2="R_thumb_proximal" reason="Never"/>
+    <disable_collisions link1="right_shoulder_roll_link" link2="torso_link" reason="Never"/>
+    <disable_collisions link1="right_shoulder_yaw_link" link2="torso_link" reason="Never"/>
+    <disable_collisions link1="torso_link" link2="waist_yaw_link" reason="Never"/>
+    
     <disable_collisions link1="R_hand_base_link" link2="right_elbow_link" reason="Never"/>
     <disable_collisions link1="R_hand_base_link" link2="right_shoulder_yaw_link" reason="Never"/>
     <disable_collisions link1="R_hand_base_link" link2="right_wrist_pitch_link" reason="Never"/>

@@ -23,6 +23,8 @@ from tesseract_robotics.tesseract_task_composer import TaskComposerPluginFactory
 
 from tesseract_robotics_viewer import TesseractViewer
 from tesseract_robotics import tesseract_common
+from tesseract_robotics.tesseract_collision import ContactResultMap, ContactRequest, ContactResultVector, ContactTestType_ALL
+
 
 tesseract_common.setLogLevel(tesseract_common.CONSOLE_BRIDGE_LOG_DEBUG)
 
@@ -33,15 +35,14 @@ task_composer_filename = os.environ["TESSERACT_TASK_COMPOSER_CONFIG_FILE"]
 
 # Initialize the resource locator and environment
 locator = GeneralResourceLocator()
-abb_irb2400_urdf_package_url = "package://tesseract_python/examples/tesseract_resource/structure/g1.urdf"
-abb_irb2400_srdf_package_url = "package://tesseract_python/examples/tesseract_resource/structure/g1.srdf"
+abb_irb2400_urdf_package_url = "package://tesseract/mycode/resource/g1.urdf"
+abb_irb2400_srdf_package_url = "package://tesseract/mycode/resource/g1.srdf"
 abb_irb2400_urdf_fname = FilesystemPath(locator.locateResource(abb_irb2400_urdf_package_url).getFilePath())
 abb_irb2400_srdf_fname = FilesystemPath(locator.locateResource(abb_irb2400_srdf_package_url).getFilePath())
 print('urdf path', abb_irb2400_urdf_fname)
+print('srdf path', abb_irb2400_srdf_fname)
 
-pelvis_package_url = "package://tesseract_python/examples/tesseract_resource/structure/g1_description/urdf/meshes/pelvis.STL"
-pelvis_fname = FilesystemPath(locator.locateResource(pelvis_package_url).getFilePath())
-print('pelvis path', pelvis_fname)
+
 
 t_env = Environment()
 
@@ -59,85 +60,87 @@ manip_info.working_frame = "torso_link"
 viewer = TesseractViewer()
 viewer.update_environment(t_env, [0,0,0])
 
-print(list(t_env.getGroupJointNames("left_arm")))
 
-# Set the initial state of the robot
-joint_names = list(t_env.getGroupJointNames("left_arm"))
-print('j names', joint_names)
-print(list(t_env.getGroupJointNames("left_arm")))
-viewer.update_joint_positions(joint_names, np.array([0.6, 0.3, 0.0, -1.0, 0.0, 0.6, 0.0])) # 0.3, 0.8, 0, -0.7, 0, 0.9, 0
+#collision check-------------------
+print('----Diagnose 1----')
+solver = t_env.getStateSolver()
+manager = t_env.getDiscreteContactManager()
+manager.setActiveCollisionObjects(t_env.getActiveLinkNames())
+
+all_names = list(t_env.getActiveJointNames())
+all_pos = np.zeros(len(all_names))
+solver.setState(all_names, all_pos)
+scene_state = solver.getState()
+manager.setCollisionObjectsTransform(scene_state.link_transforms)
+
+contact_result_map = ContactResultMap()
+manager.contactTest(contact_result_map, ContactRequest(ContactTestType_ALL))
+result_vector = ContactResultVector()
+contact_result_map.flattenMoveResults(result_vector)
+
+print(f"Found {len(result_vector)} contact results")
+for i in range(len(result_vector)):
+    contact_result = result_vector[i]
+    print(f"Contact {i}:")
+    print(f"\tDistance: {contact_result.distance}")
+    print(f"\tLink A: {contact_result.link_names[0]}")
+    print(f"\tLink B: {contact_result.link_names[1]}")
+#-------------------------------------
+
 
 # Start the viewer
 viewer.start_serve_background()
 
 # Set the initial state of the robot
-t_env.setState(joint_names, np.array([0.6, 0.3, 0.0, -1.0, 0.0, 0.6, 0.0]))
+left_joint_names = list(t_env.getGroupJointNames("left_arm"))
+left_joint_positions = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+viewer.update_joint_positions(left_joint_names, left_joint_positions) 
+t_env.setState(left_joint_names, left_joint_positions)
 
-acm = t_env.getAllowedCollisionMatrix()
-# Try this first
-print(acm.getAllAllowedCollisions())
-print(
-    acm.isCollisionAllowed(
-        "left_elbow_link",
-        "left_wrist_roll_link"
-    )
-)
-
-print(
-    acm.isCollisionAllowed(
-        "left_shoulder_pitch_link",
-        "torso_link"
-    )
-)
-
-print(
-    acm.isCollisionAllowed(
-        "left_wrist_yaw_link",
-        "left_shoulder_yaw_link"
-    )
-)
-
-print(
-    acm.isCollisionAllowed(
-        "left_elbow_link",
-        "right_elbow_link"
-    )
-)
+right_joint_names = list(t_env.getGroupJointNames("right_arm"))
+right_joint_positions = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+viewer.update_joint_positions(right_joint_names, right_joint_positions) 
+t_env.setState(right_joint_names, right_joint_positions)
 
 
+#acm = t_env.getAllowedCollisionMatrix()
+#print(acm.getAllAllowedCollisions())
+#print(acm.isCollisionAllowed("left_elbow_link","left_wrist_roll_link"))
+
+
+# getting cartesian pose from given joint positions
 kg = t_env.getKinematicGroup("left_arm")
-fk = kg.calcFwdKin(np.array([0.0, 0.0 ,0.0 ,0.0 ,0.0 ,0.0 , 0.0]))
+fk = kg.calcFwdKin(left_joint_positions)
 T = fk["left_wrist_yaw_link"]
 R = T.rotation()
 print('left_wrist_yaw_link matrix',T.matrix())
-print('left_wrist_yaw_link np array', np.array(T.matrix()))
 
 
 #------------------------------------------------------------------------------------
-wp1 = CartesianWaypoint(Isometry3d.Identity() * Translation3d(0.17182306, 0.19535302, 0.05860564) * Quaterniond(R))
-wp2 = CartesianWaypoint(Isometry3d.Identity() * Translation3d(0.17182306, 0.19535302, 0.05860564) * Quaterniond(R))
+wp1 = CartesianWaypoint(Isometry3d.Identity() * Translation3d(1.99774285e-01, 1.48661704e-01, 9.52328317e-02) * Quaterniond(R))
+wp2 = CartesianWaypoint(Isometry3d.Identity() * Translation3d(1.99774285e-01, 1.48661704e-01, 9.52328317e-02) * Quaterniond(R))
 
 # Create the input command program instructions. Note the use of explicit construction of the CartesianWaypointPoly
 # using the *_wrap_CartesianWaypoint functions. This is required because the Python bindings do not support implicit
 # conversion from the CartesianWaypoint to the CartesianWaypointPoly.
 
-
+'''
 start_wp = JointWaypoint(joint_names, np.array([0.15, 0.1, 0.1, 0.1, 0.1, 0.1, 0.0]))
-
 start_instruction = MoveInstruction(
     JointWaypointPoly_wrap_JointWaypoint(start_wp),
     MoveInstructionType_FREESPACE,
     "DEFAULT"
 )
 plan_f1 = MoveInstruction(
-    JointWaypointPoly_wrap_JointWaypoint(JointWaypoint(joint_names, np.array([0.25, 0.1, 0.1, 0.1, 0.1, 0.1, 0.0]))),
+    JointWaypointPoly_wrap_JointWaypoint(JointWaypoint(joint_names, np.array([0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.0]))),
     MoveInstructionType_FREESPACE,
     "DEFAULT"
 )
+'''
 
 
-#start_instruction = MoveInstruction(CartesianWaypointPoly_wrap_CartesianWaypoint(wp1), MoveInstructionType_FREESPACE, "DEFAULT")
-#plan_f1 = MoveInstruction(CartesianWaypointPoly_wrap_CartesianWaypoint(wp2), MoveInstructionType_FREESPACE, "DEFAULT")
+start_instruction = MoveInstruction(CartesianWaypointPoly_wrap_CartesianWaypoint(wp1), MoveInstructionType_FREESPACE, "DEFAULT")
+plan_f1 = MoveInstruction(CartesianWaypointPoly_wrap_CartesianWaypoint(wp2), MoveInstructionType_FREESPACE, "DEFAULT")
 
 
 
@@ -182,6 +185,7 @@ task_executor = factory.createTaskComposerExecutor("TaskflowExecutor")
 # Run the task and wait for completion
 future = task_executor.run(task.get(), task_data)
 future.wait()
+
 
 if not future.context.isSuccessful():
     print("Planning task failed")
