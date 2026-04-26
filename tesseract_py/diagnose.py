@@ -68,8 +68,13 @@ manager = t_env.getDiscreteContactManager()
 manager.setActiveCollisionObjects(t_env.getActiveLinkNames())
 
 all_names = list(t_env.getActiveJointNames())
-all_pos = np.zeros(len(all_names))
+all_pos = np.ones(len(all_names)) * 0.0
 solver.setState(all_names, all_pos)
+
+left_arm_names = list(t_env.getGroupJointNames("left_arm")) 
+left_arm_pos = np.ones(len(left_arm_names)) * 0.2
+solver.setState(left_arm_names, left_arm_pos)
+
 scene_state = solver.getState()
 manager.setCollisionObjectsTransform(scene_state.link_transforms)
 
@@ -92,15 +97,12 @@ for i in range(len(result_vector)):
 viewer.start_serve_background()
 
 # Set the initial state of the robot
-left_joint_names = list(t_env.getGroupJointNames("left_arm"))
-left_joint_positions = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-viewer.update_joint_positions(left_joint_names, left_joint_positions) 
-t_env.setState(left_joint_names, left_joint_positions)
-
-right_joint_names = list(t_env.getGroupJointNames("right_arm"))
-right_joint_positions = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-viewer.update_joint_positions(right_joint_names, right_joint_positions) 
-t_env.setState(right_joint_names, right_joint_positions)
+joint_names = list(t_env.getActiveJointNames())
+joint_positions = np.zeros(len(joint_names))
+mask = np.isin(joint_names, left_arm_names)
+joint_positions[mask] = 0.2
+viewer.update_joint_positions(joint_names, joint_positions) 
+t_env.setState(joint_names, joint_positions)
 
 
 #acm = t_env.getAllowedCollisionMatrix()
@@ -110,15 +112,16 @@ t_env.setState(right_joint_names, right_joint_positions)
 
 # getting cartesian pose from given joint positions
 kg = t_env.getKinematicGroup("left_arm")
-fk = kg.calcFwdKin(left_joint_positions)
+left_arm_pos = np.ones(len(left_arm_names)) * 0.2
+fk = kg.calcFwdKin(left_arm_pos)
 T = fk["left_wrist_yaw_link"]
 R = T.rotation()
 print('left_wrist_yaw_link matrix',T.matrix())
 
 
 #------------------------------------------------------------------------------------
-wp1 = CartesianWaypoint(Isometry3d.Identity() * Translation3d(1.99774285e-01, 1.48661704e-01, 9.52328317e-02) * Quaterniond(R))
-wp2 = CartesianWaypoint(Isometry3d.Identity() * Translation3d(1.99774285e-01, 1.48661704e-01, 9.52328317e-02) * Quaterniond(R))
+wp1 = CartesianWaypoint(Isometry3d.Identity() * Translation3d(0.13241027, 0.24374741, 0.03376918) * Quaterniond(R))
+wp2 = CartesianWaypoint(Isometry3d.Identity() * Translation3d(0.13241027, 0.34374741, 0.03376918) * Quaterniond(R))
 
 # Create the input command program instructions. Note the use of explicit construction of the CartesianWaypointPoly
 # using the *_wrap_CartesianWaypoint functions. This is required because the Python bindings do not support implicit
@@ -156,11 +159,18 @@ config_path = FilesystemPath(task_composer_filename)
 factory = TaskComposerPluginFactory(config_path, locator)
 
 # Create the task composer node. In this case the FreespacePipeline is used. Many other are available.
-task = factory.createTaskComposerNode("FreespacePipeline") # FreespacePipeline
+task = factory.createTaskComposerNode("OMPLPipeline") # FreespacePipeline
 
 # Get the output keys for the task
 output_key = task.getOutputKeys().get("program")
-input_key = task.getInputKeys().get("planning_input")
+#input_key = task.getInputKeys().get("planning_input")
+ik = task.getInputKeys()
+if ik.has("planning_input"):
+    input_key = ik.get("planning_input")
+elif ik.has("program"):
+    input_key = ik.get("program")
+else:
+    raise RuntimeError("Unknown pipeline input keys")
 
 # Create a profile dictionary. Profiles can be customized by adding to this dictionary and setting the profiles
 # in the instructions.

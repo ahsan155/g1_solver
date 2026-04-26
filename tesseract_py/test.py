@@ -56,3 +56,10 @@ for i in range(len(result_vector)):
     print(f"\tDistance: {contact_result.distance}")
     print(f"\tLink A: {contact_result.link_names[0]}")
     print(f"\tLink B: {contact_result.link_names[1]}")
+
+
+xx = ['aa', 'bb']
+yy = ['aa', 'bb', 'cc']
+
+zz = [x if x in yy for x in xx]
+print(zz)
