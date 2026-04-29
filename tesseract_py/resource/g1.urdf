@@ -615,7 +615,8 @@
     <parent link="torso_link"/>
     <child link="left_shoulder_pitch_link"/>
     <axis xyz="0 1 0"/>
-    <limit lower="-3.0892" upper="2.6704" effort="25" velocity="37.0"/>
+    <!--limit lower="-3.0892" upper="2.6704" effort="25" velocity="37.0"/-->
+    <limit lower="-2.9" upper="2.5" effort="25" velocity="37.0"/>
   </joint>
   <link name="left_shoulder_roll_link">
     <inertial>
@@ -644,7 +645,8 @@
     <parent link="left_shoulder_pitch_link"/>
     <child link="left_shoulder_roll_link"/>
     <axis xyz="1 0 0"/>
-    <limit lower="-1.5882" upper="2.2515" effort="25" velocity="37.0"/>
+    <!--limit lower="-1.5882" upper="2.2515" effort="25" velocity="37.0"/-->
+    <limit lower="-1.4" upper="2.1" effort="25" velocity="37.0"/>
   </joint>
   <link name="left_shoulder_yaw_link">
     <inertial>
@@ -673,7 +675,8 @@
     <parent link="left_shoulder_roll_link"/>
     <child link="left_shoulder_yaw_link"/>
     <axis xyz="0 0 1"/>
-    <limit lower="-2.618" upper="2.618" effort="25" velocity="37.0"/>
+    <!--limit lower="-2.618" upper="2.618" effort="25" velocity="37.0"/-->
+    <limit lower="-2.5" upper="2.5" effort="25" velocity="37.0"/>
   </joint>
   <link name="left_elbow_link">
     <inertial>
@@ -702,14 +705,16 @@
     <parent link="left_shoulder_yaw_link"/>
     <child link="left_elbow_link"/>
     <axis xyz="0 1 0"/>
-    <limit lower="-1.0472" upper="2.0944" effort="25" velocity="37.0"/>
+    <!--limit lower="-1.0472" upper="2.0944" effort="25" velocity="37.0"/-->
+    <limit lower="-0.9" upper="2.0" effort="25" velocity="37.0"/>
   </joint>
   <joint name="left_wrist_roll_joint" type="revolute">
     <origin xyz="0.100 0.00188791 -0.010" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
     <parent link="left_elbow_link"/>
     <child link="left_wrist_roll_link"/>
-    <limit effort="25" velocity="37.0" lower="-1.972222054" upper="1.972222054"/>
+    <!--limit effort="25" velocity="37.0" lower="-1.972222054" upper="1.972222054"/-->
+    <limit effort="25" velocity="37.0" lower="-1.8" upper="1.8"/>
   </joint>
   <link name="left_wrist_roll_link">
     <inertial>
