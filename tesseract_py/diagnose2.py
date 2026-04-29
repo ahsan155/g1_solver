@@ -1,3 +1,5 @@
+# Checked arm reachability by IK sweep
+
 import re
 import traceback
 import os

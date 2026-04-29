@@ -1,3 +1,6 @@
+# OMPLPipeline turned out to make arm move
+# Checked initial state for collision
+
 import re
 import traceback
 import os
