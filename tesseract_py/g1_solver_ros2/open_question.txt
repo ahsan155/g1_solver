@@ -1,0 +1,2 @@
+- What should be the target cartesian coordinate orientation?
+- What ROS message type will pass target waypoint?

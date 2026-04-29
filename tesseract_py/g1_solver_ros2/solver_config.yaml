@@ -1,0 +1,13 @@
+robot:
+  urdf_package_url: "package://tesseract/mycode/resource/g1.urdf"
+  srdf_package_url: "package://tesseract/mycode/resource/g1.srdf"
+
+manipulator:
+  end_effector: "left_wrist_yaw_link"
+  arm_group: "left_arm"
+  parent_frame: "torso_link"
+
+planner:
+  pipeline: "OMPLPipeline"
+  hold_seconds: 2.0
+  joint_states_timeout_s: 5.0
