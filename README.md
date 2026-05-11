@@ -9,7 +9,7 @@ ROS 2 Python package that runs a [Tesseract](https://tesseract-robotics.github.i
 | `src/` | Python modules; entry node is `main.py` (installed as executable `g1_solver_main`) |
 | `config/` | Solver YAML, task composer plugins, contact manager plugins |
 | `description/` | URDF/SRDF and bundled mesh/description assets resolved via `package://g1_solver/...` |
-| `launch/` | `g1_solver.launch.py` starts the main node and sets `TESSERACT_TASK_COMPOSER_CONFIG_FILE` |
+| `launch/` | `g1_solver.launch.py` starts the main node and sets `TESSERACT_TASK_COMPOSER_CONFIG_FILE`; `mock_joint_states.launch.py` publishes mock `/joint_states` for testing |
 
 ## Dependencies
 
@@ -17,13 +17,21 @@ ROS 2 Python package that runs a [Tesseract](https://tesseract-robotics.github.i
 
 - `rclpy`, `sensor_msgs`, `std_msgs`, `ament_index_python`, `launch`, `launch_ros`
 
-**Python** (must be available in the same environment used for Tesseract):
+**Python** (must be available in the same interpreter/environment you use to run the node):
 
-- `numpy`, `pyyaml`
-- `tesseract_robotics` bindings (`tesseract_environment`, `tesseract_task_composer`, `tesseract_command_language`, …)
-- `tesseract_robotics_viewer` (optional for visualization; required by current `main.py`)
+On Ubuntu 22.04 / 24.04, install base tools and NumPy, then install the Tesseract Python wheels from PyPI:
 
-Install Tesseract Python packages from your workspace/build instructions; they are not always expressible as plain `rosdep` keys.
+```bash
+sudo apt install python3-pip python3-numpy
+python3 -m pip install -U pip
+python3 -m pip install --user pyyaml
+python3 -m pip install --user tesseract_robotics tesseract_robotics_viewer
+```
+
+Notes:
+
+- `pyyaml` is the PyPI name for the `yaml` module (`import yaml`).
+- `tesseract_robotics_viewer` is required by the current `main.py` (viewer dependency).
 
 ## Build
 
@@ -36,6 +44,19 @@ rosdep install --from-paths src --ignore-src -r -y
 colcon build --packages-select g1_solver
 source install/setup.bash
 ```
+
+## Set environment variables
+
+Tesseract resolves `package://g1_solver/...` URIs using `TESSERACT_RESOURCE_PATH`. Point it at the **parent directory of your ROS 2 workspace `src/`** (the folder that contains `g1_solver` as a subdirectory), or otherwise at a path where the `g1_solver` package folder is discoverable per your locator setup.
+
+Example (adjust paths to match your machine):
+
+```bash
+export TESSERACT_RESOURCE_PATH=~/ros_ws/src
+export TESSERACT_TASK_COMPOSER_CONFIG_FILE=~/ros_ws/src/g1_solver/config/task_composer_plugins_no_trajopt_ifopt.yaml
+```
+
+If you use the provided launch file for the main node, you typically **do not** need to set `TESSERACT_TASK_COMPOSER_CONFIG_FILE` manually (see below); keep `TESSERACT_RESOURCE_PATH` set whenever you use `package://...` URIs in `solver_config.yaml`.
 
 ## Run
 
@@ -51,19 +72,12 @@ Override the task composer YAML:
 ros2 launch g1_solver g1_solver.launch.py task_composer_config:=/absolute/path/to/plugins.yaml
 ```
 
-Run the node executable directly (you must set the environment variable yourself):
-
-```bash
-export TESSERACT_TASK_COMPOSER_CONFIG_FILE=$(ros2 pkg prefix g1_solver)/share/g1_solver/config/task_composer_plugins.yaml
-ros2 run g1_solver g1_solver_main
-```
-
 ### Mock `/joint_states`
 
 For bench testing without hardware:
 
 ```bash
-ros2 run g1_solver g1_solver_mock_joint_states
+ros2 launch g1_solver mock_joint_states.launch.py
 ```
 
 ## Runtime expectations
@@ -72,11 +86,3 @@ ros2 run g1_solver g1_solver_mock_joint_states
 - **`/arm_joint_cmd`**: `Float32MultiArray` with 17 joints in the order defined in `joint_table_target.py` (`UNITREE_CMD_JOINTS`).
 
 Robot URDF/SRDF URLs are configured in `config/solver_config.yaml` using `package://g1_solver/description/...`.
-
-## Maintainer / license
-
-Replace `maintainer@example.com` / maintainer name in `package.xml` and `setup.py` before publishing. Default license in manifests is `Apache-2.0`; change if needed.
-
-## Note on `test.py`
-
-The file `test.py` at the package root is a standalone scratch script and is **not** installed by this package. Run it only if you adjust imports and `PYTHONPATH` yourself, or move it under `src/` as a proper module.
