@@ -1,4 +1,5 @@
 # g1_solver
+[Screencast from 05-11-2026 12:04:09 PM.webm](https://github.com/user-attachments/assets/d4528a87-9d85-4b39-8b11-98682132a349)
 
 ROS 2 Python package that runs a [Tesseract](https://tesseract-robotics.github.io/) task-composer pipeline (default: OMPL) for the Unitree G1 left arm. It subscribes to `/joint_states`, plans Cartesian segments defined in `src/joint_table_target.py`, and publishes commands on `/arm_joint_cmd` as `std_msgs/Float32MultiArray`.
 
